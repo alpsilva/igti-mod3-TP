@@ -1,0 +1,104 @@
+--1
+use aula;
+
+--2
+show collections;
+
+--3
+db.livros.find().count();
+
+431 livros.
+
+--4
+--lista de livros com isbn <= 1000000000:
+
+db.livros.find({isbn:{$lte: "1000000000"}}).pretty();
+
+nº de livros com isbn <= 1000000000:
+
+db.livros.find({isbn:{$lte: "1000000000"}}).count();
+
+4 livros.
+
+--5
+--lista de livros com isbn <= 1617200000:
+
+db.livros.find({isbn:{$lte: "1617200000"}}).pretty();
+
+nº de livros com isbn <= 1617200000:
+
+db.livros.find({isbn:{$lte: "1617200000"}}).count();
+
+22 livros.
+
+--6
+--nomes dos livros com isbn <= 1617200000:
+projection = {title:1, _id: 0}
+db.livros.find({isbn:{$lte: "1617200000"}}, projection);
+
+título do livro começado com a letra 'G':
+"Graphics File Formats"
+
+--7
+db.livros.insertMany([
+    {"title" : "Saci Pererê", "isbn" : "100", "pageCount" : 0, "publishedDate": ISODate("2000-10-01T07:00:00Z"), "status" : "PUBLISH", "authors" : [ ], "categories" : [ ]},
+    {"title" : "A Cuca", "isbn" : "99", "pageCount" : 0, "publishedDate": ISODate("2000-10-01T07:00:00Z"), "status" : "PUBLISH", "authors" : [ ], "categories" : [ ]},
+    {"title" : "Curupira", "isbn" : "98", "pageCount" : 0, "publishedDate": ISODate("2000-10-01T07:00:00Z"), "status" : "PUBLISH", "authors" : [ ], "categories" : [ ]},
+    {"title" : "Jeca Tatu", "isbn" : "97", "pageCount" : 0, "publishedDate": ISODate("2000-10-01T07:00:00Z"), "status" : "PUBLISH", "authors" : [ ], "categories" : [ ]}
+]);
+
+--8
+--lista de livros com isbn <= 100000:
+
+db.livros.find({isbn:{$lte: "100000"}}).pretty();
+
+nº de livros com isbn <= 100000:
+
+db.livros.find({isbn:{$lte: "100000"}}).count();
+
+5 livros.
+
+--9
+--2 primeiros livros retornados na consulta anterior:
+
+db.livros.find({isbn:{$lte: "100000"}}).limit(2).pretty();
+
+1: "Comprehensive Networking Glossary and Acronym Guide"
+2: "Personal Videoconferencing"
+
+--10
+
+db.livros.find({isbn:{$lte: "100000"}}).pretty().skip(2);
+
+o que faz?
+Retorna a lista de livros que tenham o campo "isbn" menor que ou igual a "100000",
+porém, pula os 2 primeiros resultados por causa da função skip(2), fazendo com que o 
+comando retorne apenas 3 livros. Sem a função skip(2), ele retornaria 5.
+
+--11
+
+db.livros.find({title: /Windows/}).count();
+
+o que faz?
+Retorna a lista de livros que tenham a palavra "Windows" em algum lugar do campo title.
+O comando retorna11 livros.
+
+--12
+projection = {"pageCount":1, "_id":0};
+
+a questão mostra como conseguir os 2 maiores valores, mas pede os 2 menores.
+Vou registrar os 2.
+
+2 maiores valores para "pageCount":
+
+db.livros.find({}, projection).sort({"pageCount":-1}).limit(2);
+
+1: 1101
+2: 1096
+
+2 menores valores para "pageCount":
+
+db.livros.find({}, projection).sort({"pageCount":1}).limit(2);
+
+1: 0
+2: 0
