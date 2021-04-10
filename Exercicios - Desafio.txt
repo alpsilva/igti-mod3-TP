@@ -1,0 +1,268 @@
+--Criar database "desafio":
+
+use desafio;
+
+--Criar collections com validator:
+--ocorrencia
+
+db.createCollection("ocorrencia", {
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            properties: {
+                id_ocorrencia: {
+                    bsonType: "int",
+                    description: "is not required"
+                },
+                classificacao: {
+                    bsonType: "string",
+                    description: "is not required"
+                },
+                cidade: {
+                    bsonType: "string",
+                    description: "is not required"
+                },
+                uf: {
+                    bsonType: "string",
+                    description: "is not required"
+                },
+                pais: {
+                    bsonType: "string",
+                    description: "is not required"
+                },
+                data: {
+                    bsonType: "date",
+                    description: "is not required"
+                },
+                num_recomendacoes: {
+                    bsonType: "int",
+                    description: "is not required"
+                }
+            }
+        }
+    }
+});
+
+--ocorrencia_tipo
+
+db.createCollection("ocorrencia_tipo", {
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            properties: {
+                id_ocorrencia_t: {
+                    bsonType: "int",
+                    description: "is not required"
+                },
+                tipo: {
+                    bsonType: "string",
+                    description: "is not required"
+                }
+            }
+        }
+    }
+});
+
+--aeronave
+db.aeronave.drop();
+
+db.createCollection("aeronave", {
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            required: ["assentos", "ano_fabricacao"],
+            properties: {
+                id_ocorrencia_a: {
+                    bsonType: "int",
+                    description: "is not required"
+                },
+                matricula: {
+                    bsonType: "string",
+                    description: "is not required"
+                },
+                    operador_categoria: {
+                    bsonType: "string"
+                },
+                tipo_veiculo: {
+                    bsonType: "string",
+                    description: "is not required"
+                },
+                fabricante: {
+                    bsonType: "string",
+                    description: "is not required"
+                },
+                modelo: {
+                    bsonType: "string",
+                    description: "is not required"
+                },
+                    motor_tipo: {
+                    bsonType: "string"
+                },
+                motor_quantidade: {
+                    bsonType: "string"
+                },
+                assentos: {
+                    bsonType: "int",
+                    minimum: 0,
+                    maximum: 1000,
+                    description: "must be an integer in [ 1, 1000 ] and is required"
+                },
+                ano_fabricacao: {
+                    bsonType: "int",
+                    minimum: 1900,
+                    maximum: 2030,
+                    description: "must be an integer in [ 1950, 2030 ] and is required"
+                },
+                pais_fabricante: {
+                    bsonType: "string"
+                },
+                registro_segmento: {
+                    bsonType: "string"
+                },
+                voo_origem: {
+                    bsonType: "string"
+                },
+                voo_destino: {
+                    bsonType: "string"
+                },
+                fase_operacao: {
+                    bsonType: "string"
+                }
+            }
+        }
+    }
+});
+
+--importar arquivos no mongodb compass
+
+
+Execicios
+
+--1
+-Verificar o numero de documentos carregados na collection "ocorrencia"
+
+db.ocorrencia.count();
+
+-5242 documentos.
+
+--2
+-Verificar o numero de documentos carregados na collection "ocorrencia_tipo"
+
+db.ocorrencia_tipo.count();
+
+-5337 documentos.
+
+--3
+-Verificar o numero de documentos carregados na collection "aeronave"
+
+db.aeronave.count();
+
+-4397 documentos.
+
+--4
+-aeronaves com modelo= 'AB-115' OU tipo_veiculo = 'AVIAO'. Limite para 5 primeiros.
+
+query = {$or: [{modelo: 'AB-115'}, {tipo_veiculo: 'AVIAO'}]};
+db.aeronave.find(query).limit(5).pretty();
+
+-Resultado mt grande, rodar novamente.
+
+--5
+-aeronaves onde o tipo_veiculo não são os seguintes tipos:
+-['AVIAO', 'HELICOPTERO', 'HIDROAVIAO', 'PLANADOR','ANFIBIO']
+-Limite para 10 primeiros.
+
+query = {$nin: ['AVIAO', 'HELICOPTERO', 'HIDROAVIAO', 'PLANADOR','ANFIBIO']};
+projection = {tipo_veiculo: true};
+db.aeronave.find({tipo_veiculo: query}, projection).limit(10).pretty();
+
+-Resultado mt grande, rodar novamente.
+
+--6
+-Agrupar a collection aeronave pelo número de tipo_veiculo.
+
+db.aeronave.aggregate(
+    {$group:{
+            _id: '$tipo_veiculo',
+            count: {$sum:1}
+        }
+    }
+);
+
+-Resultado:
+{ "_id" : "AVIAO", "count" : 3565 }
+{ "_id" : "TRIKE", "count" : 3 }
+{ "_id" : "HELICOPTERO", "count" : 525 }
+{ "_id" : "ULTRALEVE", "count" : 255 }
+{ "_id" : "ANFIBIO", "count" : 9 }
+{ "_id" : "PLANADOR", "count" : 11 }
+{ "_id" : "***", "count" : 27 }
+{ "_id" : "DIRIGIVEL", "count" : 2 }
+
+--7
+-Ocorrencias com o num_recomendacoes <= 2. Limite para 10 primeiros.
+
+query = {$lte: 2};
+projection = {num_recomendacoes: true};
+db.ocorrencia.find({num_recomendacoes: query}, projection).limit(10).pretty();
+
+-Resultado mt grande, rodar novamente.
+
+--8
+-Ocorrencias que obedeçam a essas regras:
+--Field num_recomendacoes menor ou igual ($lte) a 2 (<=2).
+--Agrupar pelo field uf ($uf)
+--Fazer a contagem ($sum:1)
+--Ordenar de forma descendente
+
+query = {$lte: 2};
+db.ocorrencia.aggregate(
+    { $match: {num_recomendacoes: query} },
+    { $group: { _id: '$uf', count: {$sum:1} } },
+    { $sort: {uf: 1}}
+);
+
+--9
+-media dos numeros de recomendações em ocorrencia
+
+db.ocorrencia.aggregate({
+    $group: {_id: null, media: {$avg: '$num_recomendacoes'}}
+});
+
+--10
+-lookup aggregate na collection aeronave junção ocorrencia.
+-limite o resultado em 2.
+
+db.aeronave.aggregate([
+{
+    $lookup:
+    {
+        from: "ocorrencia",
+        localField: ("id_ocorrencia_a"),
+        foreignField: ("id_ocorrencia"),
+        as: "ocorrencia_aeronave"
+    }
+},
+{
+    $limit: 2
+}
+]).pretty();
+
+--11
+-lookup aggregate na collection ocorrencia junção ocorrencia_tipo.
+-limite o resultado em 2.
+
+db.ocorrencia.aggregate([
+{
+    $lookup:
+    {
+        from: "ocorrencia_tipo",
+        localField: ("id_ocorrencia"),
+        foreignField: ("id_ocorrencia_t"),
+        as: "tipo"
+    }
+},
+{
+    $limit: 2
+}
+]).pretty();

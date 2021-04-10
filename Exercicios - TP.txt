@@ -81,7 +81,7 @@ db.livros.find({title: /Windows/}).count();
 
 o que faz?
 Retorna a lista de livros que tenham a palavra "Windows" em algum lugar do campo title.
-O comando retorna 11 livros.
+O comando retorna11 livros.
 
 --12
 projection = {"pageCount":1, "_id":0};
